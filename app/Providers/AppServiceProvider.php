@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
+use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\AdminOrOwnerOnly;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -20,5 +21,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        Route::middleware('web')
+        ->group(function () {
+            //
+        });
+
+    // ⬇️ Daftarkan alias middleware di sini
+    Route::aliasMiddleware('admin.owner.only', AdminOrOwnerOnly::class);
     }
 }

@@ -52,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                'admin.owner.only',
             ]);
     }
 }

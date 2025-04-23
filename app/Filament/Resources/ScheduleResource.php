@@ -55,17 +55,18 @@ class ScheduleResource extends Resource
         return $table
             ->headerActions([
                 \Filament\Tables\Actions\Action::make('generateSchedules')
-                    ->label('Generate Jadwal Seminggu')
+                    ->label('Generate Jadwal Sebulan')
                     ->action(function () {
                         // Delete existing schedules first
                         Schedule::query()->delete();
                         
                         $fields = \App\Models\Field::all();
                         $startDate = Carbon::now()->startOfDay();
+                        $daysInMonth = $startDate->daysInMonth;
                         $generated = 0;
                         
                         foreach ($fields as $field) {
-                            for ($day = 0; $day < 7; $day++) {
+                            for ($day = 0; $day < $daysInMonth; $day++) {
                                 $currentDate = $startDate->copy()->addDays($day);
                                 
                                 // Generate dari jam 8 pagi sampai 23 malam
@@ -83,13 +84,13 @@ class ScheduleResource extends Resource
 
                         Notification::make()
                             ->title('Jadwal Berhasil Dibuat!')
-                            ->body("Berhasil membuat {$generated} jadwal untuk semua lapangan.")
+                            ->body("Berhasil membuat {$generated} jadwal untuk semua lapangan selama sebulan.")
                             ->success()
                             ->send();
                     })
                     ->requiresConfirmation()
                     ->modalHeading('Generate Jadwal Otomatis')
-                    ->modalDescription('Ini akan menghapus jadwal yang ada dan membuat jadwal baru untuk semua lapangan selama 1 minggu kedepan. Lanjutkan?')
+                    ->modalDescription('Ini akan menghapus jadwal yang ada dan membuat jadwal baru untuk semua lapangan selama 1 bulan kedepan. Lanjutkan?')
                     ->modalSubmitActionLabel('Ya, Generate!')
                     ->color('success')
                     ->icon('heroicon-o-calendar')
@@ -129,7 +130,39 @@ class ScheduleResource extends Resource
                         'available' => 'Tersedia',
                         'booked' => 'Dibooking',
                         'maintenance' => 'Maintenance'
+                    ]),
+
+                Tables\Filters\Filter::make('date')
+                    ->form([
+                        Components\DatePicker::make('start_date')
+                            ->label('Dari Tanggal'),
+                        Components\DatePicker::make('end_date')
+                            ->label('Sampai Tanggal'),
                     ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['start_date'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('start_time', '>=', $date),
+                            )
+                            ->when(
+                                $data['end_date'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('start_time', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        
+                        if ($data['start_date'] ?? null) {
+                            $indicators['start_date'] = 'Dari tanggal ' . Carbon::parse($data['start_date'])->format('d M Y');
+                        }
+                        
+                        if ($data['end_date'] ?? null) {
+                            $indicators['end_date'] = 'Sampai tanggal ' . Carbon::parse($data['end_date'])->format('d M Y');
+                        }
+                        
+                        return $indicators;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

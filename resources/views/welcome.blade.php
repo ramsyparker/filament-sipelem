@@ -8,6 +8,9 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
 
+    <meta name="errors" content="{{ $errors->any() ? json_encode($errors->messages()) : '{}' }}">
+    <meta name="success" content="{{ session('success') ?? '' }}">
+
     <!-- Favicons -->
     <link href="assets/img/favicon.png" rel="icon">
     <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
@@ -53,7 +56,7 @@
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
-            <a class="btn-getstarted" href="index.html#about">Login</a>
+            <a class="btn-getstarted" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
 
         </div>
     </header>
@@ -143,7 +146,7 @@
         <!-- Call To Action Section -->
         <section id="call-to-action" class="call-to-action section dark-background">
 
-            <img src="{{asset('assets/img/cta-bg.jpeg')}}" alt="">
+            <img src="{{ asset('assets/img/cta-bg.jpeg') }}" alt="">
 
             <div class="container">
                 <div class="row justify-content-center" data-aos="zoom-in" data-aos-delay="100">
@@ -214,13 +217,13 @@
                             <div class="row gy-4">
 
                                 <div class="col-md-6">
-                                    <input type="text" name="name" class="form-control"
-                                        placeholder="Nama" required="">
+                                    <input type="text" name="name" class="form-control" placeholder="Nama"
+                                        required="">
                                 </div>
 
                                 <div class="col-md-6 ">
-                                    <input type="email" class="form-control" name="email"
-                                        placeholder="Email" required="">
+                                    <input type="email" class="form-control" name="email" placeholder="Email"
+                                        required="">
                                 </div>
 
                                 <div class="col-md-12">
@@ -331,8 +334,107 @@
     <script src="{{ asset('assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
 
     <!-- Main JS File -->
-    <script src="{{asset('assets/js/main.js')}}"></script>
+    <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="{{ asset('assets/js/custom.js') }}"></script>
 
+    <!-- filepath: d:\sipelem-filament\resources\views\welcome.blade.php -->
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Masuk ke SIPELEM<span>.</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ route('login.store') }}">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                placeholder="Masukkan email" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password">Password</label>
+                            <div class="password-field">
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Masukkan password" required>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                    <i class="bi bi-eye-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-4 text-end">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal"
+                                data-bs-dismiss="modal">Belum punya akun? Daftar</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Masuk</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
+        aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Daftar SIPELEM<span>.</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ route('register.store') }}">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="register_name">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="register_name" name="name"
+                                placeholder="Masukkan nama lengkap" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="register_email">Email</label>
+                            <input type="email" class="form-control" id="register_email" name="email"
+                                placeholder="Masukkan email" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="register_phone">No HP</label>
+                            <input type="text" class="form-control" id="register_phone" name="phone"
+                                placeholder="Masukkan no hp" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="register_password">Password</label>
+                            <div class="password-field">
+                                <input type="password" class="form-control" id="register_password" name="password"
+                                    placeholder="Masukkan password" required>
+                                <button type="button" class="password-toggle"
+                                    onclick="togglePassword('register_password')">
+                                    <i class="bi bi-eye-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password_confirmation">Konfirmasi Password</label>
+                            <div class="password-field">
+                                <input type="password" class="form-control" id="password_confirmation"
+                                    name="password_confirmation" placeholder="Konfirmasi password" required>
+                                <button type="button" class="password-toggle"
+                                    onclick="togglePassword('password_confirmation')">
+                                    <i class="bi bi-eye-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-4 text-end">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal"
+                                data-bs-dismiss="modal">Sudah punya akun? Masuk</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Daftar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> <!-- End Register Modal -->
 </body>
 
 </html>
