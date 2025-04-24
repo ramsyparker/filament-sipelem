@@ -50,7 +50,8 @@
                 <ul>
                     <li><a href="#hero" class="active">Beranda<br></a></li>
                     <li><a href="#about">Tentang</a></li>
-                    <li><a href="#services">Fasilitas</a></li>
+                    <li><a href="#services">Lapangan</a></li>
+                    <li><a href="#call-to-action">Membership</a></li>
                     <li><a href="#contact">Kontak</a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
@@ -134,8 +135,6 @@
                                         <span class="price">Rp
                                             {{ number_format($field->price, 0, ',', '.') }}/Jam</span>
                                     </div>
-                                    <a href="#about" class="cta-btn">Booking
-                                        Sekarang</a>
                                 </div>
                             </div>
                         </div>

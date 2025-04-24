@@ -17,9 +17,16 @@ use Carbon\Carbon;
 class ScheduleResource extends Resource
 {
     protected static ?string $model = Schedule::class;
-    protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?string $navigationLabel = 'Jadwal';
-    protected static ?string $navigationGroup = 'Master Data';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    protected static ?string $navigationBadgeTooltip = 'Total Jadwal';
+    protected static ?string $navigationGroup = 'Kelola Jadwal & Lapangan';
 
     public static function form(Form $form): Form
     {
@@ -29,15 +36,15 @@ class ScheduleResource extends Resource
                     ->relationship('field', 'name')
                     ->required()
                     ->label('Lapangan'),
-                    
+
                 Components\DateTimePicker::make('start_time')
                     ->required()
                     ->label('Waktu Mulai'),
-                    
+
                 Components\DateTimePicker::make('end_time')
                     ->required()
                     ->label('Waktu Selesai'),
-                    
+
                 Components\Select::make('status')
                     ->options([
                         'available' => 'Tersedia',
@@ -53,64 +60,23 @@ class ScheduleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->headerActions([
-                \Filament\Tables\Actions\Action::make('generateSchedules')
-                    ->label('Generate Jadwal Sebulan')
-                    ->action(function () {
-                        // Delete existing schedules first
-                        Schedule::query()->delete();
-                        
-                        $fields = \App\Models\Field::all();
-                        $startDate = Carbon::now()->startOfDay();
-                        $daysInMonth = $startDate->daysInMonth;
-                        $generated = 0;
-                        
-                        foreach ($fields as $field) {
-                            for ($day = 0; $day < $daysInMonth; $day++) {
-                                $currentDate = $startDate->copy()->addDays($day);
-                                
-                                // Generate dari jam 8 pagi sampai 23 malam
-                                for ($hour = 8; $hour < 23; $hour++) {
-                                    Schedule::create([
-                                        'field_id' => $field->id,
-                                        'start_time' => $currentDate->copy()->setHour($hour)->setMinute(0),
-                                        'end_time' => $currentDate->copy()->setHour($hour + 1)->setMinute(0),
-                                        'status' => 'available'
-                                    ]);
-                                    $generated++;
-                                }
-                            }
-                        }
-
-                        Notification::make()
-                            ->title('Jadwal Berhasil Dibuat!')
-                            ->body("Berhasil membuat {$generated} jadwal untuk semua lapangan selama sebulan.")
-                            ->success()
-                            ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->modalHeading('Generate Jadwal Otomatis')
-                    ->modalDescription('Ini akan menghapus jadwal yang ada dan membuat jadwal baru untuk semua lapangan selama 1 bulan kedepan. Lanjutkan?')
-                    ->modalSubmitActionLabel('Ya, Generate!')
-                    ->color('success')
-                    ->icon('heroicon-o-calendar')
-            ])
             ->columns([
                 Tables\Columns\TextColumn::make('field.name')
                     ->label('Lapangan')
                     ->sortable()
                     ->searchable(),
-                    
+
                 Tables\Columns\TextColumn::make('start_time')
-                    ->dateTime('d M Y H:i')
                     ->label('Waktu Mulai')
-                    ->sortable(),
-                    
-                Tables\Columns\TextColumn::make('end_time')
                     ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('end_time')
                     ->label('Waktu Selesai')
+                    ->dateTime('d M Y H:i')
                     ->sortable(),
-                    
+
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
                         'success' => 'available',
@@ -124,54 +90,68 @@ class ScheduleResource extends Resource
                 Tables\Filters\SelectFilter::make('field')
                     ->relationship('field', 'name')
                     ->label('Lapangan'),
-                    
+
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'available' => 'Tersedia',
                         'booked' => 'Dibooking',
                         'maintenance' => 'Maintenance'
                     ]),
+            ])
+            ->headerActions([
+                \Filament\Tables\Actions\Action::make('generateSchedules')
+                    ->label('Generate Jadwal Sebulan')
+                    ->color('success')
+                    ->icon('heroicon-o-calendar-days')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        // Delete existing schedules
+                        Schedule::truncate();
 
-                Tables\Filters\Filter::make('date')
-                    ->form([
-                        Components\DatePicker::make('start_date')
-                            ->label('Dari Tanggal'),
-                        Components\DatePicker::make('end_date')
-                            ->label('Sampai Tanggal'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['start_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('start_time', '>=', $date),
-                            )
-                            ->when(
-                                $data['end_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('start_time', '<=', $date),
-                            );
+                        $fields = \App\Models\Field::all();
+                        $startDate = Carbon::now()->startOfDay();
+                        $endDate = $startDate->copy()->addMonth();
+                        $schedules = [];
+                        $generated = 0;
+
+                        foreach ($fields as $field) {
+                            $currentDate = $startDate->copy();
+
+                            while ($currentDate->lt($endDate)) {
+                                // Generate schedules from 8:00 to 22:00
+                                for ($hour = 8; $hour < 24; $hour++) {
+                                    $schedules[] = [
+                                        'field_id' => $field->id,
+                                        'start_time' => $currentDate->copy()->setHour($hour),
+                                        'end_time' => $currentDate->copy()->setHour($hour + 1),
+                                        'status' => 'available',
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ];
+
+                                    $generated++;
+
+                                    // Insert in chunks to avoid memory issues
+                                    if (count($schedules) >= 100) {
+                                        Schedule::insert($schedules);
+                                        $schedules = [];
+                                    }
+                                }
+                                $currentDate->addDay();
+                            }
+                        }
+
+                        // Insert remaining schedules
+                        if (!empty($schedules)) {
+                            Schedule::insert($schedules);
+                        }
+
+                        Notification::make()
+                            ->title('Jadwal Berhasil Dibuat!')
+                            ->body("Berhasil membuat {$generated} jadwal untuk bulan depan.")
+                            ->success()
+                            ->send();
                     })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-                        
-                        if ($data['start_date'] ?? null) {
-                            $indicators['start_date'] = 'Dari tanggal ' . Carbon::parse($data['start_date'])->format('d M Y');
-                        }
-                        
-                        if ($data['end_date'] ?? null) {
-                            $indicators['end_date'] = 'Sampai tanggal ' . Carbon::parse($data['end_date'])->format('d M Y');
-                        }
-                        
-                        return $indicators;
-                    }),
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

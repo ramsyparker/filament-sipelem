@@ -15,6 +15,7 @@ return new class extends Migration
             $table->dateTime('start_time');
             $table->dateTime('end_time');
             $table->enum('status', ['available', 'booked', 'maintenance'])->default('available');
+            $table->foreignId('booked_by_user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }

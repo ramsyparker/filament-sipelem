@@ -20,11 +20,18 @@ class FieldResource extends Resource
     // Menggunakan icon field/lapangan yang sesuai
     protected static ?string $navigationIcon = 'heroicon-o-view-columns';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    protected static ?string $navigationBadgeTooltip = 'Jumlah Lapangan';
+
     // Sesuaikan label navigasi dalam Bahasa Indonesia
     protected static ?string $navigationLabel = 'Lapangan';
 
     // Opsional: Tambahkan grup navigasi
-    protected static ?string $navigationGroup = 'Master Data';
+    protected static ?string $navigationGroup = 'Kelola Jadwal & Lapangan';
 
     public static function form(Form $form): Form
     {
@@ -44,7 +51,9 @@ class FieldResource extends Resource
                     ->required(),
 
                 Forms\Components\TextInput::make('price')
-                    ->label('Harga (Rp)')
+                    ->label('Harga')
+                    ->prefix('Rp')
+                    ->helperText('Harga per jam')
                     ->numeric()
                     ->minValue(0)
                     ->required(),

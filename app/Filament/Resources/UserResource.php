@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -17,7 +18,19 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $navigationGroup = 'Kelola User';
+    protected static ?string $label = 'User';
+    protected static ?string $pluralLabel = 'Users';
+
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    protected static ?string $navigationBadgeTooltip = 'Total Users';
+    protected static ?string $navigationLabel = 'User';
 
     public static function form(Form $form): Form
     {
@@ -56,14 +69,14 @@ class UserResource extends Resource
 
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->required(fn ($context) => $context === 'create')
+                    ->required(fn($context) => $context === 'create')
                     ->minLength(8)
-                    ->dehydrated(fn ($state) => filled($state))
+                    ->dehydrated(fn($state) => filled($state))
                     ->label('Password'),
 
                 Forms\Components\TextInput::make('password_confirmation')
                     ->password()
-                    ->required(fn ($context) => $context === 'create')
+                    ->required(fn($context) => $context === 'create')
                     ->minLength(8)
                     ->dehydrated(false)
                     ->same('password')
