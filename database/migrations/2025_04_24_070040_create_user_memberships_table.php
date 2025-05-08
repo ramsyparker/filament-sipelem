@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('end_date');
             $table->enum('status', ['active', 'expired'])->default('active');
             $table->timestamps();
+            $table->string('order_id')->unique(); // Menyimpan order_id sebagai string yang unik
         });
     }
 

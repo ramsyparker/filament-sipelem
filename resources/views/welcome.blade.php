@@ -57,7 +57,30 @@
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
-            <a class="btn-getstarted" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+            @auth
+                <div class="dropdown">
+                    <a class="btn-getstarted dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ Auth::user()->name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="{{ route('profile') }}">
+                            <i class="bi bi-person me-2"></i>Profile
+                        </a></li>
+                       
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            @else
+                <a class="btn-getstarted" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+            @endauth
 
         </div>
     </header>
@@ -120,27 +143,28 @@
             <div class="container">
                 <div class="row gy-4">
                     @foreach ($fields as $field)
-                        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
-                            <div class="service-item position-relative card-modern">
+                    <div class="col-md-4">
+                        <div class="service-item card-modern">
+                            <a href="{{ route('booking.form', ['fieldId' => $field->id]) }}" class="text-decoration-none text-dark">
                                 @if ($field->image)
-                                    <div class="image-container">
-                                        <img src="{{ asset('storage/' . $field->image) }}" alt="{{ $field->name }}"
-                                            class="img-fluid">
-                                    </div>
+                                <div class="image-container mb-3">
+                                    <img src="{{ asset('storage/' . $field->image) }}" alt="{{ $field->name }}" class="img-fluid rounded">
+                                </div>
                                 @endif
                                 <div class="card-content">
-                                    <h3>{{ $field->name }}</h3>
-                                    <div class="field-info">
+                                    <h3 class="h5">{{ $field->name }}</h3>
+                                    <div class="field-info d-flex justify-content-between">
                                         <span class="type">{{ $field->type }}</span>
-                                        <span class="price">Rp
-                                            {{ number_format($field->price, 0, ',', '.') }}/Jam</span>
+                                        <span class="price">Rp {{ number_format($field->price, 0, ',', '.') }}/Jam</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
+                    </div>
                     @endforeach
                 </div>
             </div>
+            
         </section>
         <!-- Call To Action Section -->
         <section id="call-to-action" class="call-to-action section dark-background">
@@ -153,7 +177,19 @@
                         <div class="text-center">
                             <h3>Join Membership</h3>
                             <p>Jadi Membership di SIPELEM FUTSAL untuk jadwal yang lebih di prioritaskan.</p>
-                            <a class="cta-btn" href="#">Daftar Sekarang</a>
+                            @auth
+                            @if(Auth::user()->role === 'member')
+                                <button class="cta-btn" disabled>Anda Sudah Menjadi Member</button>
+                            @else
+                                <a class="cta-btn" href="#" data-bs-toggle="modal" data-bs-target="#membershipModal">
+                                    Daftar Sekarang
+                                </a>
+                            @endif
+                        @else
+                            <a class="cta-btn" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                Login Untuk Daftar
+                            </a>
+                        @endauth
                         </div>
                     </div>
                 </div>
@@ -434,6 +470,95 @@
             </div>
         </div>
     </div> <!-- End Register Modal -->
+    <!-- filepath: d:\sipelem-filament\resources\views\welcome.blade.php -->
+<div class="modal fade" id="membershipModal" tabindex="-1" aria-labelledby="membershipModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="membershipModalLabel">Pilih Paket Membership<span>.</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    @foreach($memberships as $membership)
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ $membership->name }}</h5>
+                                <p class="card-text">{{ $membership->description }}</p>
+                                <ul class="list-unstyled">
+                                    <li><i class="bi bi-check-circle-fill text-success"></i> {{ $membership->duration }} Hari</li>
+                                    
+                                </ul>
+                                <div class="text-center mt-4">
+                                    <h4 class="mb-3">Rp {{ number_format($membership->price, 0, ',', '.') }}</h4>
+                                    <button type="button" class="btn btn-primary" 
+                                            onclick="selectMembership({{ $membership->id }}, '{{ $membership->name }}')">
+                                        Pilih Paket
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                <!-- Membership Form (initially hidden) -->
+                <form id="membershipForm" action="{{ route('membership.register') }}" method="POST" class="d-none mt-4">
+                    @csrf
+                    <input type="hidden" name="membership_id" id="membership_id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pilih Lapangan</label>
+                            <select name="field_id" class="form-select" required>
+                                @foreach($fields as $field)
+                                    <option value="{{ $field->id }}">{{ $field->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pilih Hari</label>
+                            <select name="day_of_week" class="form-select" required>
+                                <option value="Monday">Senin</option>
+                                <option value="Tuesday">Selasa</option>
+                                <option value="Wednesday">Rabu</option>
+                                <option value="Thursday">Kamis</option>
+                                <option value="Friday">Jumat</option>
+                                <option value="Saturday">Sabtu</option>
+                                <option value="Sunday">Minggu</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pilih Jam</label>
+                            <input type="time" name="booking_time" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-secondary" onclick="backToPackages()">
+                                    <i class="bi bi-arrow-left"></i> Kembali
+                                </button>
+                                <button type="submit" class="btn btn-primary flex-grow-1">Daftar Membership</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function selectMembership(membershipId, membershipName) {
+    document.getElementById('membership_id').value = membershipId;
+    document.querySelector('.row.g-4').classList.add('d-none');
+    document.getElementById('membershipForm').classList.remove('d-none');
+    document.getElementById('membershipModalLabel').innerHTML = 'Pengaturan Jadwal - ' + membershipName;
+}
+function backToPackages() {
+    document.querySelector('.row.g-4').classList.remove('d-none');
+    document.getElementById('membershipForm').classList.add('d-none');
+    document.getElementById('membershipModalLabel').innerHTML = 'Pilih Paket Membership<span>.</span>';
+}
+</script>
 </body>
 
 </html>

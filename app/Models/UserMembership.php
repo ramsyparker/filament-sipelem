@@ -15,13 +15,15 @@ class UserMembership extends Model
         'day_of_week',
         'start_date',
         'end_date',
-        'status'
+        'status',
+        'order_id', // Menyimpan order_id yang unik
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'booking_time' => 'datetime',
+        'order_id' => 'string',
     ];
 
     public function user()

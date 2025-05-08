@@ -33,15 +33,9 @@ class LatestBookings extends BaseWidget
                 Tables\Columns\TextColumn::make('start_time')
                     ->label('Mulai')
                     ->time(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'confirmed',
-                        'danger' => 'cancelled',
-                    ]),
-                Tables\Columns\TextColumn::make('price')
-                    ->label('Harga')
-                    ->money('IDR'),
+                Tables\Columns\TextColumn::make('end_time')
+                    ->label('Selesai')
+                    ->time(),
             ]);
     }
     public function getTableSearchColumns(): array

@@ -41,13 +41,13 @@ class AuthController extends Controller
     }
 
     // Proses Logout
-    public function destroy($id)
+    public function destroy($id = null)
     {
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
 
-        return redirect()->route('auth.index');
+        return redirect('/');
     }
 
     // Proses Register (via /register)

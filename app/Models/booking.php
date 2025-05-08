@@ -19,6 +19,7 @@ class Booking extends Model
         'end_time',
         'status',
         'price',
+        'order_id',
     ];
 
     protected $casts = [
@@ -26,6 +27,7 @@ class Booking extends Model
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'price' => 'decimal:2',
+        'order_id' => 'string',
     ];
 
     public function user(): BelongsTo
@@ -80,4 +82,8 @@ class Booking extends Model
             ->whereTime('end_time', $endTime->format('H:i:s'))
             ->update(['status' => $status]);
     }
+    // Booking.php
+
+
+
 }

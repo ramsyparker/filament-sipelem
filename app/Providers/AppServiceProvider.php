@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Pagination\Paginator;
+use App\Http\Middleware\OwnerOnly; // Menggunakan OwnerOnly middleware
 use App\Http\Middleware\AdminOrOwnerOnly;
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
         //
         Route::middleware('web')
         ->group(function () {

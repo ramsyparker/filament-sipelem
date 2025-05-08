@@ -31,4 +31,9 @@ class Schedule extends Model
     {
         return $query->with(['field']);
     }
+    // Relasi ke model User (jika ada relasi langsung ke user)
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'booked_by_user_id');
+    }
 }

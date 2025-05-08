@@ -18,6 +18,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
             $table->decimal('price', 10, 2)->default(0);
             $table->timestamps();
+            $table->string('order_id')->nullable();
+            
         });
     }
 

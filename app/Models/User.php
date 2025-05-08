@@ -46,4 +46,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function memberships()
+    {
+        return $this->hasMany(UserMembership::class);
+    }
+
+    public function hasActiveMembership()
+    {
+        return $this->memberships()
+            ->where('status', 'active')
+            ->where('end_date', '>', now())
+            ->exists();
+    }
 }
