@@ -123,7 +123,7 @@ class ScheduleResource extends Resource
                                     $schedules[] = [
                                         'field_id' => $field->id,
                                         'start_time' => $currentDate->copy()->setHour($hour),
-                                        'end_time' => $currentDate->copy()->setHour($hour + 1),
+                                        'end_time' => $currentDate->copy()->setHour($hour + 1)->subSecond(),
                                         'status' => 'available',
                                         'created_at' => now(),
                                         'updated_at' => now(),

@@ -229,8 +229,11 @@ class BookingController extends Controller
 
 
         $schedules = Schedule::where('field_id', $booking->field_id)
-            ->whereBetween('start_time', [$startDateTime, $endDateTime->subSecond()])
-            ->get();
+        // Cek apakah start_time lebih besar atau sama dengan waktu mulai
+        ->where('start_time', '>=', $startDateTime)
+        // Cek apakah end_time lebih kecil atau sama dengan waktu selesai
+        ->where('end_time', '<=', $endDateTime)
+        ->get();
 
         foreach ($schedules as $schedule) {
             if ($schedule->status === 'booked') {
@@ -247,7 +250,7 @@ class BookingController extends Controller
 
         $booking->status = 'completed';
         $booking->save();
-        
+
 
 
 

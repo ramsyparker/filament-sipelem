@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
@@ -33,4 +36,14 @@ Route::get('/payment-booking', [BookingController::class, 'payment'])->name('boo
 Route::post('/payment-membership-notification', [MembershipController::class, 'notification']);  // Callback URL
 Route::post('/payment-booking-notification', [BookingController::class, 'notification']);
 
+// Route untuk form lupa password
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+
+// Route untuk reset password
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+// routes/web.php
+Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.view');
 

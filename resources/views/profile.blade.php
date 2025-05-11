@@ -7,13 +7,14 @@
     <!-- Include your CSS files here -->
     <link href="{{ asset('assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
+   
+    <link href="{{ asset('assets/css/profile.css') }}" rel="stylesheet">
 </head>
 <body class="profile-page">
-    <div class="container mt-5 pt-5">
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
+                <div class="card glass-effect">
                     <div class="card-header">
                         <h4 class="mb-0">Profile Saya</h4>
                     </div>
@@ -38,29 +39,30 @@
                             @csrf
                             @method('PUT')
 
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Nama Lengkap</label>
-                                <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $user->name) }}" required>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label">Nama Lengkap</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $user->name) }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $user->email) }}" required>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $user->email) }}" required>
-                            </div>
-
-                            
                             <hr>
                             <h5>Ubah Password</h5>
-                            <small class="text-muted">Kosongkan jika tidak ingin mengubah password</small>
+                            <p>Kosongkan jika tidak ingin mengubah password</p>
 
-                            <div class="mb-3 mt-3">
-                                <label for="current_password" class="form-label">Password Saat Ini</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password Baru</label>
-                                <input type="password" class="form-control" id="password" name="password">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="current_password" class="form-label">Password Saat Ini</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Password Baru</label>
+                                    <input type="password" class="form-control" id="password" name="password">
+                                </div>
                             </div>
 
                             <div class="mb-3">

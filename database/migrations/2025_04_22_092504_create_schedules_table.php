@@ -12,8 +12,8 @@ return new class extends Migration
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('field_id')->constrained()->onDelete('cascade');
-            $table->timestamp('start_time');
-            $table->timestamp('end_time')->nullable();
+            $table->dateTime('start_time');
+            $table->dateTime('end_time')->nullable();
             $table->enum('status', ['available', 'booked', 'maintenance'])->default('available');
             $table->foreignId('booked_by_user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();

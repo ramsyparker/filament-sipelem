@@ -1,0 +1,82 @@
+/* Full-page background */
+body {
+    margin: 0 auto;
+    height: 100vh;
+    background: url('../img/hero-bg.jpeg') no-repeat center center fixed; /* Ganti dengan URL gambar latar belakang */
+    background-size: cover;
+}
+body:before {
+    content: "";
+    background: color-mix(in srgb, #000000, transparent 30%);
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+/* Overlay with glass effect */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1); /* Set transparansi */
+    border-radius: 10px;
+    backdrop-filter: blur(10px); /* Efek blur pada latar belakang */
+    -webkit-backdrop-filter: blur(10px); /* Safari fix */
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Center the card */
+.profile-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.card {
+    width: 100%;
+    max-width: 600px;
+}
+
+.card-header,
+h4,
+hr{
+    color: #ffc451;
+}
+.password-toggle{
+    color: black;
+    cursor: pointer;
+}
+.password-toggle:hover{
+    color: black;
+    
+}
+.form-control{
+    background-color: transparent;
+    border: 1px solid #ffc451;
+    color: white;
+    font-weight: 600;
+}
+.btn-primary{
+    background-color: #ffc451;
+    border: none;
+    color: black;
+    font-weight: 600;
+}
+.btn-primary:hover{
+    background-color: #b5872b;
+    border: none;
+    color: black;
+    font-weight: 600;
+}
+input[type="password"] {
+    background-color: white;
+    font-weight: 600;
+}
+input[type="password"]:hover {
+    background-color: white;
+    font-weight: 600;
+}
+h5,
+.form-label,
+p{
+    color: white;
+}

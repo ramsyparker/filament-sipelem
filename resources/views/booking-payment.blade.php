@@ -10,33 +10,34 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #212121; /* Dark background */
+            color: #fff; /* Light text color */
         }
 
         .container {
             max-width: 600px;
             margin-top: 50px;
-            background-color: #fff;
+            background-color: #2c2c2c; /* Darker container for contrast */
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
 
         .container h2 {
             font-weight: 600;
-            color: #333;
+            color: #ffc451; /* Yellow color for header */
             margin-bottom: 20px;
         }
 
         .container p {
             font-size: 16px;
-            color: #555;
+            color: #ddd; /* Light text for paragraphs */
         }
 
         .total-payment {
             font-size: 18px;
             font-weight: 600;
-            color: #28a745;
+            color: #28a745; /* Green color for total payment */
         }
 
         .pay-button {
@@ -48,14 +49,30 @@
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
+            color: #212121; /* Dark text on button */
         }
 
         .pay-button:hover {
-            background-color: #e6ac30;
+            background-color: #e6ac30; /* Darker yellow on hover */
         }
 
         .alert {
             margin-top: 20px;
+        }
+
+        .d-flex.justify-content-center {
+            margin-top: 20px;
+        }
+
+        /* For Responsive Design */
+        @media (max-width: 576px) {
+            .container {
+                padding: 20px;
+            }
+
+            .pay-button {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -68,7 +85,7 @@
         <!-- Menampilkan Order ID -->
         <p><strong>Nomor Order:</strong> {{ $orderId }}</p>
         <!-- Menampilkan lapangan yang dipesan -->
-        <p><strong>Lapangan:</strong> {{ $field->name }}</p> <!-- Mengambil nama lapangan -->
+        <p><strong>Lapangan:</strong> {{ $field->name }}</p>
 
         <!-- Menampilkan jadwal booking -->
         <p><strong>Tanggal Booking:</strong> {{ $bookingDate }}</p>

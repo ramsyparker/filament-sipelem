@@ -1,0 +1,67 @@
+/* Full-page background */
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+    background: url('../img/hero-bg.jpeg') no-repeat center center fixed; /* Replace with your background image */
+    background-size: cover;
+}
+
+/* Overlay with glass effect */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1); /* Transparent background */
+    border-radius: 15px; /* Slightly more rounded corners */
+    backdrop-filter: blur(15px); /* Apply blur effect */
+    -webkit-backdrop-filter: blur(15px); /* Safari fix */
+    padding: 2rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* More prominent shadow */
+    width: 100%;
+    max-width: 900px; /* Optional: Set a maximum width */
+}
+
+/* Title color */
+.card-header h4 {
+    color: #ffc451; /* Set the title color */
+}
+
+/* Back button styling */
+.card-header a {
+    text-decoration: none;
+    background-color: #ffc451; /* Back button color */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.card-header a:hover {
+    background-color: #e0a735; /* Slightly darker shade on hover */
+}
+
+/* Styling Tabel Jadwal */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.schedule-table th, .schedule-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.schedule-table th {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.schedule-table tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.schedule-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}

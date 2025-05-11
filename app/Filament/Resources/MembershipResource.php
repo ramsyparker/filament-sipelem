@@ -62,7 +62,6 @@ class MembershipResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Harga')
-                    ->prefix('Rp')
                     ->sortable()
                     ->searchable()
                     ->money('IDR', true),
