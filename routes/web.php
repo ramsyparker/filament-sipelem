@@ -5,6 +5,7 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CustomLogoutController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ScheduleController;
@@ -17,7 +18,16 @@ Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'store'])->name('login.store');
 Route::get('/register', [AuthController::class, 'create'])->name('register');
 Route::post('/register', [AuthController::class, 'storeRegister'])->name('register.store');
+
 Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+Route::post('admin/logout', CustomLogoutController::class)
+    ->middleware('auth')
+    ->name('filament.admin.auth.logout');
+
+Route::post('owner/logout', CustomLogoutController::class)
+    ->middleware('auth')
+    ->name('filament.owner.auth.logout');
+    
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
