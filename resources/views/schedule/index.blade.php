@@ -17,7 +17,7 @@
             <div class="col-md-8">
                 <div class="card glass-effect">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Jadwal Lapangan</h4>
+                        <h4 class="mb-0">Jadwal Anda</h4>
                         <a href="/" class="btn btn-primary btn-sm">Kembali</a> <!-- Back button -->
                     </div>
                     <div class="card-body">

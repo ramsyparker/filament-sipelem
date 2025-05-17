@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\AdminOnly;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Pagination\Paginator;
@@ -31,5 +32,7 @@ class AppServiceProvider extends ServiceProvider
 
     // ⬇️ Daftarkan alias middleware di sini
     Route::aliasMiddleware('admin.owner.only', AdminOrOwnerOnly::class);
+    Route::aliasMiddleware('admin.only',AdminOnly::class);
+
     }
 }
