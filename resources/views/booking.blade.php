@@ -141,6 +141,10 @@
             /* Yellow border on focus */
             background-color: #444;
         }
+
+        .mb-3 {
+            color: white;
+        }
     </style>
 </head>
 
@@ -150,7 +154,7 @@
         <h2 class="mb-3">Booking Lapangan: {{ $field->name }}</h2>
         <p><strong>Harga:</strong> Rp {{ number_format($field->price, 0, ',', '.') }} / Jam</p>
 
-        <!-- Filter Hari -->
+        {{-- <!-- Filter Hari -->
         <form method="GET" action="{{ route('booking.form', ['fieldId' => $field->id]) }}" class="mb-4">
             <label for="dayFilter" class="form-label">Filter Hari</label>
             <select name="day" id="dayFilter" onchange="this.form.submit()" class="form-select w-auto">
@@ -160,7 +164,7 @@
                         {{ $day }}</option>
                 @endforeach
             </select>
-        </form>
+        </form> --}}
 
         <!-- Alert -->
         @if (session('error'))
@@ -178,7 +182,8 @@
             <!-- Baris Pertama -->
             <div class="col-md-6">
                 <label for="booking_date" class="form-label">Tanggal Booking</label>
-                <input type="date" name="booking_date" class="form-control" required>
+                <input type="date" name="booking_date" class="form-control" required
+                    onchange="filterByDate(this.value)" value="{{ request('booking_date') }}">
             </div>
 
             <div class="col-md-6">
@@ -278,6 +283,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        function filterByDate(date) {
+            // Redirect ke route booking.form dengan parameter booking_date
+            const url = new URL(window.location.href);
+            url.searchParams.set('booking_date', date);
+            window.location.href = url.toString();
+        }
+
         function checkLogin() {
             @auth
             document.getElementById('bookingForm').submit();

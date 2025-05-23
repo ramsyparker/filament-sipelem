@@ -23,21 +23,18 @@ class BookingController extends Controller
     public function showBookingForm($fieldId)
     {
         $field = Field::findOrFail($fieldId);
-        $selectedDay = request('day');
+
+        $selectedDate = request('booking_date'); // Ambil tanggal dari query param
 
         $query = DB::table('schedules')
             ->where('field_id', $fieldId)
             ->where('status', 'available');
 
-        if ($selectedDay) {
-            // Filter berdasarkan hari dari dropdown
-            $query->whereRaw("DAYNAME(start_time) = ?", [self::getEnglishDay($selectedDay)])
-                ->whereDate('start_time', '>=', now()->toDateString());
+        if ($selectedDate) {
+            $query->whereDate('start_time', $selectedDate);
         } else {
-            // Default: hanya tampilkan jadwal hari ini (tanggal dan hari sama)
-            $today = Carbon::now();
-            $query->whereDate('start_time', $today->toDateString())
-                ->whereRaw("DAYNAME(start_time) = ?", [$today->englishDayOfWeek]);
+            $today = Carbon::now()->toDateString();
+            $query->whereDate('start_time', $today);
         }
 
         $availableSchedules = $query->orderBy('start_time')->paginate(16);
@@ -229,11 +226,11 @@ class BookingController extends Controller
 
 
         $schedules = Schedule::where('field_id', $booking->field_id)
-        // Cek apakah start_time lebih besar atau sama dengan waktu mulai
-        ->where('start_time', '>=', $startDateTime)
-        // Cek apakah end_time lebih kecil atau sama dengan waktu selesai
-        ->where('end_time', '<=', $endDateTime)
-        ->get();
+            // Cek apakah start_time lebih besar atau sama dengan waktu mulai
+            ->where('start_time', '>=', $startDateTime)
+            // Cek apakah end_time lebih kecil atau sama dengan waktu selesai
+            ->where('end_time', '<=', $endDateTime)
+            ->get();
 
         foreach ($schedules as $schedule) {
             if ($schedule->status === 'booked') {
