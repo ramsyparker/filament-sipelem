@@ -92,12 +92,10 @@ class BookingController extends Controller
         $isConflict = Booking::where('field_id', $request->field_id)
             ->where('booking_date', $request->booking_date)
             ->where(function ($query) use ($startTime, $endTime) {
-                $query->whereBetween('start_time', [$startTime->format('H:i:s'), $endTime->format('H:i:s')])
-                    ->orWhereBetween('end_time', [$startTime->format('H:i:s'), $endTime->format('H:i:s')])
-                    ->orWhere(function ($query) use ($startTime, $endTime) {
-                        $query->where('start_time', '<=', $startTime->format('H:i:s'))
-                            ->where('end_time', '>=', $endTime->format('H:i:s'));
-                    });
+                $query->where(function ($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '<', $endTime->format('H:i:s'))
+                        ->where('end_time', '>', $startTime->format('H:i:s'));
+                });
             })
             ->exists();
 
