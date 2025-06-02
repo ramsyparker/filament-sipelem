@@ -13,6 +13,8 @@ use Filament\Tables;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Table;
 use App\Export\IncomeReportExport as ExportsIncomeReportExport;
+use PhpParser\Node\Stmt\Label;
+use PHPUnit\Framework\Constraint\IsFalse;
 
 class IncomeReportResource extends Resource
 {
@@ -50,31 +52,79 @@ class IncomeReportResource extends Resource
                     ->label('Tanggal')
                     ->sortable(),
             ])
+
             ->filters([
-                // Anda bisa menambahkan filter sesuai kebutuhan
+                // Filter rentang tanggal
+                Tables\Filters\Filter::make('date_range')
+
+                    ->label('Rentang Tanggal')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')
+                            ->label('Dari Tanggal')
+                            ->required(),
+                        Forms\Components\DatePicker::make('until')
+                            ->label('Sampai Tanggal')
+                            ->required(),
+                    ])
+                    ->query(function ($query, array $data) {
+                        if ($data['from'] && $data['until']) {
+                            return $query->whereBetween('created_at', [
+                                \Carbon\Carbon::parse($data['from'])->startOfDay(),
+                                \Carbon\Carbon::parse($data['until'])->endOfDay(),
+                            ]);
+                        }
+                        return $query;
+                    }),
+
+                // Filter per bulan & tahun
+                Tables\Filters\Filter::make('per_bulan')
+
+                    ->label('Per Bulan')
+                    ->form([
+                        Forms\Components\Select::make('bulan')
+                            ->label('Bulan')
+                            ->options([
+                                '01' => 'Januari',
+                                '02' => 'Februari',
+                                '03' => 'Maret',
+                                '04' => 'April',
+                                '05' => 'Mei',
+                                '06' => 'Juni',
+                                '07' => 'Juli',
+                                '08' => 'Agustus',
+                                '09' => 'September',
+                                '10' => 'Oktober',
+                                '11' => 'November',
+                                '12' => 'Desember',
+                            ])
+                            ->default(now()->format('m'))
+                            ->required(),
+
+                        Forms\Components\TextInput::make('tahun')
+
+                            ->label('Tahun')
+                            ->numeric()
+                            ->default(now()->year)
+                            ->required(),
+                    ])
+                    ->query(function ($query, array $data) {
+                        if ($data['bulan'] && $data['tahun']) {
+                            $start = \Carbon\Carbon::createFromDate($data['tahun'], $data['bulan'], 1)->startOfMonth();
+                            $end = $start->copy()->endOfMonth();
+                            return $query->whereBetween('created_at', [$start, $end]);
+                        }
+                        return $query;
+                    }),
             ])
+            ->filtersTriggerAction(
+                fn() =>
+                Tables\Actions\Action::make('filter')
+                    ->label('Filter')
+                    ->icon('heroicon-o-funnel')
+            )
+            
             ->actions([
-                //     // ExportAction::make('Export to Excel')
-                //     //     ->label('Export CSV')
-                //     //     ->action(function () {
-                //     //         // Menentukan Exporter untuk Excel
-                //     //         return Excel::download(new ExportsIncomeReportExport, 'income_report.xlsx');
-                //     //     })
-                //     //     ->icon('heroicon-o-printer'),
-
-                //     ExportAction::make('Export to PDF')
-                //         ->label('Print PDF')
-                //         ->action(function () {
-                //             // Ambil data pembayaran
-                //             $data = Payment::all();
-
-                //             // Buat objek PDF
-                //             $pdf = FacadePdf::loadView('pdf.income-report', ['data' => $data]);
-
-                //             // Kembalikan hasil download PDF
-                //             return $pdf->download('income_report.pdf');
-                //         })
-                //         ->icon('heroicon-o-printer'),
+                
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
