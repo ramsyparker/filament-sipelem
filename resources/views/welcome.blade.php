@@ -32,6 +32,74 @@
     <!-- Main CSS File -->
     <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
 
+    <style>
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+        }
+        
+        .notification.warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+        }
+        
+        .notification-content {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notification-message {
+            flex: 1;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+    </style>
+
 </head>
 
 <body class="index-page">
@@ -70,6 +138,10 @@
 
                         <li><a class="dropdown-item" href="{{ route('schedule.view') }}">
                                 <i class="bi bi-calendar me-2"></i> Jadwal
+                            </a></li>
+
+                        <li><a class="dropdown-item" href="{{ route('booking.history') }}">
+                                <i class="bi bi-clock-history me-2"></i> History Booking
                             </a></li>
 
                         <li>
@@ -401,7 +473,7 @@
                         <div class="mb-4">
                             <label for="email">Email</label>
                             <input type="email" class="form-control" id="email" name="email"
-                                placeholder="Masukkan email" required>
+                                placeholder="Masukkan email" required value="{{ old('email') }}">
                         </div>
                         <div class="mb-4">
                             <label for="password">Password</label>

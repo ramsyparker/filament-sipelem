@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomLogoutController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\IncomeReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
@@ -31,9 +32,24 @@ Route::post('owner/logout', CustomLogoutController::class)
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/booking/history', [BookingController::class, 'history'])->name('booking.history');
 });
-Route::get('booking/{fieldId}', [BookingController::class, 'showBookingForm'])->name('booking.form');
 
+// Email Verification Routes
+Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])
+    ->middleware('auth')
+    ->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect()->route('welcome')->with('success', 'Email berhasil diverifikasi! Sekarang Anda dapat login.');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.send');
+
+Route::get('booking/{fieldId}', [BookingController::class, 'showBookingForm'])->name('booking.form');
 
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 
@@ -57,3 +73,5 @@ Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('
 // routes/web.php
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.view');
 
+// Route for income report PDF export
+Route::get('/income-report/print-pdf', [IncomeReportController::class, 'printPdf'])->name('income-report.print-pdf');

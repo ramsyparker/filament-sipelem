@@ -333,4 +333,18 @@ class BookingController extends Controller
         // Mengirimkan response OK ke Midtrans
         return response()->json('OK'); // Response 'OK' untuk Midtrans
     }
+
+    /**
+     * Tampilkan riwayat booking milik user yang sedang login
+     */
+    public function history()
+    {
+        $user = Auth::user();
+        $bookings = Booking::with('field')
+            ->where('user_id', $user->id)
+            ->orderByDesc('booking_date')
+            ->orderByDesc('start_time')
+            ->get();
+        return view('booking-history', compact('bookings'));
+    }
 }
