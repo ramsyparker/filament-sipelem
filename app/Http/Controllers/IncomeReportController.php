@@ -13,16 +13,14 @@ class IncomeReportController extends Controller
     {
         $query = Payment::query();
 
-        // Ambil filter dari tableFilters (Filament Table)
-        $tableFilters = $request->input('tableFilters', []);
-        if (isset($tableFilters['date_range']['from']) && isset($tableFilters['date_range']['until'])) {
+        // Handle new form parameters
+        if ($request->filled('from') && $request->filled('until')) {
             $query->whereBetween('created_at', [
-                Carbon::parse($tableFilters['date_range']['from'])->startOfDay(),
-                Carbon::parse($tableFilters['date_range']['until'])->endOfDay(),
+                Carbon::parse($request->from)->startOfDay(),
+                Carbon::parse($request->until)->endOfDay(),
             ]);
-        }
-        if (isset($tableFilters['per_bulan']['bulan']) && isset($tableFilters['per_bulan']['tahun'])) {
-            $start = Carbon::createFromDate($tableFilters['per_bulan']['tahun'], $tableFilters['per_bulan']['bulan'], 1)->startOfMonth();
+        } elseif ($request->filled('bulan') && $request->filled('tahun')) {
+            $start = Carbon::createFromDate($request->tahun, $request->bulan, 1)->startOfMonth();
             $end = $start->copy()->endOfMonth();
             $query->whereBetween('created_at', [$start, $end]);
         }
@@ -45,25 +43,36 @@ class IncomeReportController extends Controller
                 $query->whereBetween('created_at', [$start, $end]);
             }
         }
-        if ($request->filled('bulan') && $request->filled('tahun')) {
-            $start = Carbon::createFromDate($request->tahun, $request->bulan, 1)->startOfMonth();
-            $end = $start->copy()->endOfMonth();
-            $query->whereBetween('created_at', [$start, $end]);
-        }
-        if ($request->filled('from') && $request->filled('until')) {
-            $query->whereBetween('created_at', [
-                Carbon::parse($request->from)->startOfDay(),
-                Carbon::parse($request->until)->endOfDay(),
-            ]);
-        }
 
         $payments = $query->orderBy('created_at', 'desc')->get();
         $total = $payments->sum('amount');
+
+        // Calculate additional statistics
+        $totalTransactions = $payments->count();
+        $averageAmount = $totalTransactions > 0 ? $total / $totalTransactions : 0;
+        $highestAmount = $payments->max('amount') ?? 0;
+        $lowestAmount = $payments->min('amount') ?? 0;
+
+        // Group by date for daily summary
+        $dailySummary = $payments->groupBy(function ($payment) {
+            return $payment->created_at->format('Y-m-d');
+        })->map(function ($dayPayments) {
+            return [
+                'count' => $dayPayments->count(),
+                'total' => $dayPayments->sum('amount'),
+                'date' => $dayPayments->first()->created_at->format('d F Y'),
+            ];
+        });
 
         $pdf = Pdf::loadView('income-report-pdf', [
             'payments' => $payments,
             'total' => $total,
             'filters' => $request->all(),
+            'totalTransactions' => $totalTransactions,
+            'averageAmount' => $averageAmount,
+            'highestAmount' => $highestAmount,
+            'lowestAmount' => $lowestAmount,
+            'dailySummary' => $dailySummary,
         ]);
 
         return $pdf->download('laporan-pemasukan.pdf');

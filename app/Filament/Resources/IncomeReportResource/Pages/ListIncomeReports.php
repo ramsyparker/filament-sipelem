@@ -16,51 +16,16 @@ class ListIncomeReports extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        $today = Carbon::today();
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $endOfWeek = Carbon::now()->endOfWeek();
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
-        $startOfYear = Carbon::now()->startOfYear();
-        $endOfYear = Carbon::now()->endOfYear();
-
+        // Determine the correct route based on current panel
+        $currentPanel = request()->segment(1);
+        $routePrefix = $currentPanel === 'owner' ? 'filament.owner.resources.income-reports.print' : 'filament.admin.resources.income-reports.print';
+        
         return [
-            ActionGroup::make([
-                Action::make('print_today')
-                    ->label('Cetak Hari Ini')
-                    ->icon('heroicon-o-printer')
-                    ->url(route('income-report.print-pdf', [
-                        'from' => $today->format('Y-m-d'),
-                        'until' => $today->format('Y-m-d'),
-                    ]))
-                    ->openUrlInNewTab(),
-                Action::make('print_week')
-                    ->label('Cetak Minggu Ini')
-                    ->icon('heroicon-o-printer')
-                    ->url(route('income-report.print-pdf', [
-                        'from' => $startOfWeek->format('Y-m-d'),
-                        'until' => $endOfWeek->format('Y-m-d'),
-                    ]))
-                    ->openUrlInNewTab(),
-                Action::make('print_month')
-                    ->label('Cetak Bulan Ini')
-                    ->icon('heroicon-o-printer')
-                    ->url(route('income-report.print-pdf', [
-                        'bulan' => $today->format('m'),
-                        'tahun' => $today->format('Y'),
-                    ]))
-                    ->openUrlInNewTab(),
-                Action::make('print_year')
-                    ->label('Cetak Tahun Ini')
-                    ->icon('heroicon-o-printer')
-                    ->url(route('income-report.print-pdf', [
-                        'tahun' => $today->format('Y'),
-                    ]))
-                    ->openUrlInNewTab(),
-            ])
-            ->icon('heroicon-o-printer')
-            ->label('Print Laporan')
-            ->color('warning'),
+            Action::make('print_report')
+                ->label('Cetak Laporan')
+                ->icon('heroicon-o-printer')
+                ->color('warning')
+                ->url(route($routePrefix)),
         ];
     }
 }

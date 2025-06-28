@@ -83,5 +83,7 @@ Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('
 // routes/web.php
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.view');
 
-// Route for income report PDF export
-Route::get('/income-report/print-pdf', [IncomeReportController::class, 'printPdf'])->name('income-report.print-pdf');
+// Route for income report PDF export - only accessible by admin and owner
+Route::get('/income-report/print-pdf', [IncomeReportController::class, 'printPdf'])
+    ->middleware(['auth', 'admin.owner.only'])
+    ->name('income-report.print-pdf');

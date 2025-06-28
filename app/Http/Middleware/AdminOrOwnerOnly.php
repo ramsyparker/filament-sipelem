@@ -15,7 +15,7 @@ class AdminOrOwnerOnly
     {
         $user = Auth::user();
 
-        if (! $user || ! in_array($user->role, ['owner'])) {
+        if (! $user || ! in_array($user->role, ['admin', 'owner'])) {
             abort(403, 'Unauthorized');
         }
 

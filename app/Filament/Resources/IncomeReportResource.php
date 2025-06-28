@@ -124,26 +124,10 @@ class IncomeReportResource extends Resource
             )
             
             ->actions([
-                Tables\Actions\Action::make('export_pdf')
-                    ->label('Export PDF')
-                    ->icon('heroicon-o-printer')
-                    ->url(fn ($record) => route('income-report.print-pdf', ['ids' => $record->id]))
-                    ->openUrlInNewTab(),
+                // Remove the old export_pdf action since we'll use the form validation
             ])
             ->bulkActions([
-                // Tables\Actions\BulkActionGroup::make([
-                //     Tables\Actions\DeleteBulkAction::make(),
-                //     Tables\Actions\Action::make('export_pdf')
-                //         ->label('Export PDF')
-                //         ->icon('heroicon-o-printer')
-                //         ->action(function ($records) {
-                //             $paymentIds = $records->pluck('id')->toArray();
-                //             $url = route('income-report.print-pdf', [
-                //                 'ids' => implode(',', $paymentIds),
-                //             ]);
-                //             return redirect($url);
-                //         }),
-                // ]),
+                // Remove bulk actions for now
             ]);
     }
 
@@ -160,6 +144,7 @@ class IncomeReportResource extends Resource
             'index' => Pages\ListIncomeReports::route('/'),
             'create' => Pages\CreateIncomeReport::route('/create'),
             'edit' => Pages\EditIncomeReport::route('/{record}/edit'),
+            'print' => Pages\PrintIncomeReport::route('/print'),
         ];
     }
 }
