@@ -17,9 +17,10 @@ use Midtrans\Notification;
 use App\Notifications\PaymentStatusNotification;
 use App\Notifications\BookingStatusNotification;
 use App\Notifications\NewMembershipNotification;
-use Filament\Actions\Modal\Actions\Action;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
-use Filament\Tables\Actions\Modal\Actions\Action as ActionsAction;
+use App\Filament\Resources\MembershipResource;
+use App\Filament\Resources\OrderResource;
 
 class MembershipController extends Controller
 {
@@ -97,6 +98,16 @@ class MembershipController extends Controller
         // Ambil data field untuk notifikasi
         $field = Field::find($request->field_id);
 
+        // Menyimpan data pembayaran ke tabel payments
+        $payment = Payment::create([
+            'user_id' => $user->id,
+            'order_id' => $transaction_details['order_id'],
+            'amount' => $totalAmount,
+            'status' => 'pending', // Status pembayaran sementara sebelum Midtrans memverifikasi
+            'payment_method' => 'midtrans', // Metode pembayaran (dalam hal ini Midtrans)
+            'payment_token' => $snapToken,
+        ]);
+
         // Kirim notifikasi ke admin/owner untuk membership baru
         $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
         foreach ($admins as $admin) {
@@ -109,18 +120,14 @@ class MembershipController extends Controller
                 ->icon('heroicon-o-identification')
                 ->body('Membership: ' . $membership->name . ' di lapangan ' . $field->name . ' - Order ID: ' . $transaction_details['order_id'])
                 ->success()
+                ->actions([
+                    Action::make('view')
+                        ->button()
+                        ->label('View')
+                        ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                ])
                 ->sendToDatabase($admin);
         }
-
-        // Menyimpan data pembayaran ke tabel payments
-        $payment = Payment::create([
-            'user_id' => $user->id,
-            'order_id' => $transaction_details['order_id'],
-            'amount' => $totalAmount,
-            'status' => 'pending', // Status pembayaran sementara sebelum Midtrans memverifikasi
-            'payment_method' => 'midtrans', // Metode pembayaran (dalam hal ini Midtrans)
-            'payment_token' => $snapToken,
-        ]);
 
         // Memetakan hari yang dipilih pengguna ke konstanta Carbon
         $daysOfWeek = [
@@ -278,12 +285,24 @@ class MembershipController extends Controller
                     ->title('Pembayaran Membership Berhasil')
                     ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
                     ->success()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View Order')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
                     ->sendToDatabase($admin);
 
                 FilamentNotification::make()
                     ->title('Membership Dikonfirmasi')
                     ->body('Order ID: ' . $orderId . ' - ' . count($bookings) . ' booking telah dikonfirmasi')
                     ->success()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View Order')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
                     ->sendToDatabase($admin);
             }
         } elseif ($transactionStatus == 'pending') {
@@ -307,12 +326,24 @@ class MembershipController extends Controller
                     ->title('Pembayaran Membership Pending')
                     ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
                     ->warning()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View Order')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
                     ->sendToDatabase($admin);
 
                 FilamentNotification::make()
                     ->title('Membership Pending')
                     ->body('Order ID: ' . $orderId . ' - ' . count($bookings) . ' booking menunggu pembayaran')
                     ->warning()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View Order')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
                     ->sendToDatabase($admin);
             }
         } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
@@ -336,16 +367,39 @@ class MembershipController extends Controller
                     ->title('Pembayaran Membership Gagal')
                     ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
                     ->danger()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View Order')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
                     ->sendToDatabase($admin);
 
                 FilamentNotification::make()
                     ->title('Membership Gagal')
                     ->body('Order ID: ' . $orderId . ' - ' . count($bookings) . ' booking dibatalkan')
                     ->danger()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View Order')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
                     ->sendToDatabase($admin);
             }
         }
 
         return response()->json('OK');
+    }
+
+    /**
+     * Tampilkan detail membership untuk admin/owner
+     */
+    public function showDetail($order_id)
+    {
+        $userMembership = UserMembership::with(['user', 'membership', 'field'])
+            ->where('order_id', $order_id)
+            ->firstOrFail();
+        return view('membership-detail', compact('userMembership'));
     }
 }

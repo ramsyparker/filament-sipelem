@@ -37,6 +37,7 @@ class FilamentServiceProvider extends ServiceProvider
                             \App\Filament\Resources\ScheduleResource::class,
                             \App\Filament\Resources\UserMembershipResource::class,
                             \App\Filament\Resources\IncomeReportResource::class,
+                            \App\Filament\Resources\OrderResource::class,
                         ]),
                     ]);
                 }
@@ -51,7 +52,7 @@ class FilamentServiceProvider extends ServiceProvider
                             \App\Filament\Resources\MembershipResource::class,
                             \App\Filament\Resources\ScheduleResource::class,
                             \App\Filament\Resources\UserMembershipResource::class,
-                            //\App\Filament\Resources\IncomeReportResource::class,
+                            \App\Filament\Resources\OrderResource::class,
                         ]),
                     ]);
                 }

@@ -17,10 +17,10 @@ use Midtrans\Notification;
 use App\Notifications\PaymentStatusNotification;
 use App\Notifications\BookingStatusNotification;
 use App\Notifications\NewBookingNotification;
-use Filament\Actions\Action as FilamentActionsAction;
-use Filament\Actions\Modal\Actions\Action;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
-use Filament\Tables\Actions\Modal\Actions\Action as ActionsAction;
+use App\Filament\Resources\BookingResource;
+use App\Filament\Resources\OrderResource;
 
 class BookingController extends Controller
 {
@@ -124,22 +124,6 @@ class BookingController extends Controller
             'order_id' => $orderId, // Atau gunakan sistem order_id lain
         ]);
 
-        // Kirim notifikasi ke admin/owner untuk booking baru
-        $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
-        foreach ($admins as $admin) {
-            // Kirim notifikasi email
-            $admin->notify(new NewBookingNotification($booking, $user, $field));
-
-            // Kirim notifikasi ke panel Filament
-            FilamentNotification::make()
-                ->title('Booking baru dari ' . $user->name)
-                ->icon('heroicon-o-shopping-cart')
-                ->body('Order ID: ' . $orderId . ' untuk lapangan ' . $field->name . ' pada ' . $booking->booking_date . ' jam ' . $startTime->format('H:i'))
-                ->success()
-                
-                ->sendToDatabase($admin);
-        }
-
         // Konfigurasi Midtrans
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         Config::$isProduction = env('MIDTRANS_IS_PROD');
@@ -177,7 +161,7 @@ class BookingController extends Controller
             $snapToken = Snap::getSnapToken($transaction_data);
 
             // Update payment dengan snap_token
-            Payment::create([
+            $payment = Payment::create([
                 'user_id' => $user->id,
                 'order_id' => $orderId,
                 'amount' => $booking->price,
@@ -185,6 +169,27 @@ class BookingController extends Controller
                 'payment_method' => 'midtrans', // Metode pembayaran (Midtrans)
                 'payment_token' => $snapToken,
             ]);
+
+            // Kirim notifikasi ke admin/owner untuk booking baru
+            $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+            foreach ($admins as $admin) {
+                // Kirim notifikasi email
+                $admin->notify(new NewBookingNotification($booking, $user, $field));
+
+                // Kirim notifikasi ke panel Filament
+                FilamentNotification::make()
+                    ->title('Booking baru dari ' . $user->name)
+                    ->icon('heroicon-o-shopping-cart')
+                    ->body('Order ID: ' . $orderId . ' untuk lapangan ' . $field->name . ' pada ' . $booking->booking_date . ' jam ' . $startTime->format('H:i'))
+                    ->success()
+                    ->actions([
+                        Action::make('view')
+                            ->button()
+                            ->label('View')
+                            ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                    ])
+                    ->sendToDatabase($admin);
+            }
 
             return redirect()->route('booking.payment', ['snap_token' => $snapToken, 'order_id' => $orderId]);
         } catch (\Exception $e) {
@@ -344,12 +349,24 @@ class BookingController extends Controller
                         ->title('Pembayaran Berhasil')
                         ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
                         ->success()
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->label('View Order')
+                                ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                        ])
                         ->sendToDatabase($admin);
 
                     FilamentNotification::make()
                         ->title('Booking Dikonfirmasi')
                         ->body('Order ID: ' . $orderId . ' - ' . $field->name . ' pada ' . $booking->booking_date->format('d M Y') . ' jam ' . $booking->start_time->format('H:i'))
                         ->success()
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->label('View Order')
+                                ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                        ])
                         ->sendToDatabase($admin);
                 }
                 $notifMessage = 'Pembayaran berhasil! Booking Anda telah dikonfirmasi.';
@@ -372,12 +389,24 @@ class BookingController extends Controller
                         ->title('Pembayaran Pending')
                         ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
                         ->warning()
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->label('View Order')
+                                ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                        ])
                         ->sendToDatabase($admin);
 
                     FilamentNotification::make()
                         ->title('Booking Pending')
                         ->body('Order ID: ' . $orderId . ' - ' . $field->name . ' pada ' . $booking->booking_date->format('d M Y') . ' jam ' . $booking->start_time->format('H:i'))
                         ->warning()
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->label('View Order')
+                                ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                        ])
                         ->sendToDatabase($admin);
                 }
                 $notifMessage = 'Menunggu konfirmasi pembayaran...';
@@ -404,12 +433,24 @@ class BookingController extends Controller
                         ->title('Pembayaran Gagal')
                         ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
                         ->danger()
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->label('View Order')
+                                ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                        ])
                         ->sendToDatabase($admin);
 
                     FilamentNotification::make()
                         ->title('Booking Gagal')
                         ->body('Order ID: ' . $orderId . ' - ' . $field->name . ' pada ' . $booking->booking_date->format('d M Y') . ' jam ' . $booking->start_time->format('H:i'))
                         ->danger()
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->label('View Order')
+                                ->url(url('/' . ($admin->role === 'owner' ? 'owner' : 'admin') . '/orders/' . $payment->id))
+                        ])
                         ->sendToDatabase($admin);
                 }
                 $notifMessage = 'Pembayaran gagal! Silakan coba lagi.';
@@ -443,5 +484,14 @@ class BookingController extends Controller
             ->orderByDesc('start_time')
             ->get();
         return view('booking-history', compact('bookings'));
+    }
+
+    /**
+     * Tampilkan detail booking untuk admin/owner
+     */
+    public function showDetail($order_id)
+    {
+        $booking = Booking::with(['user', 'field', 'payment'])->where('order_id', $order_id)->firstOrFail();
+        return view('booking-detail', compact('booking'));
     }
 }
