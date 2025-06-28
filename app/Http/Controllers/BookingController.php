@@ -14,6 +14,13 @@ use Carbon\Carbon;
 use Midtrans\Snap;
 use Midtrans\Config;
 use Midtrans\Notification;
+use App\Notifications\PaymentStatusNotification;
+use App\Notifications\BookingStatusNotification;
+use App\Notifications\NewBookingNotification;
+use Filament\Actions\Action as FilamentActionsAction;
+use Filament\Actions\Modal\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
+use Filament\Tables\Actions\Modal\Actions\Action as ActionsAction;
 
 class BookingController extends Controller
 {
@@ -116,6 +123,22 @@ class BookingController extends Controller
             'price' => $field->price * $request->duration, // Harga lapangan * durasi
             'order_id' => $orderId, // Atau gunakan sistem order_id lain
         ]);
+
+        // Kirim notifikasi ke admin/owner untuk booking baru
+        $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+        foreach ($admins as $admin) {
+            // Kirim notifikasi email
+            $admin->notify(new NewBookingNotification($booking, $user, $field));
+
+            // Kirim notifikasi ke panel Filament
+            FilamentNotification::make()
+                ->title('Booking baru dari ' . $user->name)
+                ->icon('heroicon-o-shopping-cart')
+                ->body('Order ID: ' . $orderId . ' untuk lapangan ' . $field->name . ' pada ' . $booking->booking_date . ' jam ' . $startTime->format('H:i'))
+                ->success()
+                
+                ->sendToDatabase($admin);
+        }
 
         // Konfigurasi Midtrans
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
@@ -295,43 +318,117 @@ class BookingController extends Controller
             return response()->json(['error' => 'Booking not found'], 404);
         }
 
+        $user = $booking->user;
+        $field = $booking->field;
+
+        $notifMessage = null;
+        $notifType = 'info';
+
         // Cek status transaksi dari Midtrans
         switch ($transactionStatus) {
             case 'settlement': // Pembayaran berhasil
-                // Update status pembayaran menjadi completed
                 $payment->status = 'completed';
                 $payment->save();
-
-                // Update status booking menjadi completed
                 $booking->status = 'completed';
                 $booking->save();
+
+                // Kirim notifikasi ke admin/owner menggunakan Filament
+                $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+                foreach ($admins as $admin) {
+                    // Kirim notifikasi email
+                    $admin->notify(new PaymentStatusNotification('completed', $orderId, $payment->amount));
+                    $admin->notify(new BookingStatusNotification('completed', $orderId, $field->name, $booking->booking_date->format('d M Y'), $booking->start_time->format('H:i'), $booking->end_time->format('H:i')));
+
+                    // Kirim notifikasi ke panel Filament
+                    FilamentNotification::make()
+                        ->title('Pembayaran Berhasil')
+                        ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
+                        ->success()
+                        ->sendToDatabase($admin);
+
+                    FilamentNotification::make()
+                        ->title('Booking Dikonfirmasi')
+                        ->body('Order ID: ' . $orderId . ' - ' . $field->name . ' pada ' . $booking->booking_date->format('d M Y') . ' jam ' . $booking->start_time->format('H:i'))
+                        ->success()
+                        ->sendToDatabase($admin);
+                }
+                $notifMessage = 'Pembayaran berhasil! Booking Anda telah dikonfirmasi.';
+                $notifType = 'success';
                 break;
 
-            case 'pending': // Pembayaran pending
-                // Update status pembayaran menjadi pending
+            case 'pending': // Pembayaran masih pending
                 $payment->status = 'pending';
                 $payment->save();
+
+                // Kirim notifikasi ke admin/owner menggunakan Filament
+                $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+                foreach ($admins as $admin) {
+                    // Kirim notifikasi email
+                    $admin->notify(new PaymentStatusNotification('pending', $orderId, $payment->amount));
+                    $admin->notify(new BookingStatusNotification('pending', $orderId, $field->name, $booking->booking_date->format('d M Y'), $booking->start_time->format('H:i'), $booking->end_time->format('H:i')));
+
+                    // Kirim notifikasi ke panel Filament
+                    FilamentNotification::make()
+                        ->title('Pembayaran Pending')
+                        ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
+                        ->warning()
+                        ->sendToDatabase($admin);
+
+                    FilamentNotification::make()
+                        ->title('Booking Pending')
+                        ->body('Order ID: ' . $orderId . ' - ' . $field->name . ' pada ' . $booking->booking_date->format('d M Y') . ' jam ' . $booking->start_time->format('H:i'))
+                        ->warning()
+                        ->sendToDatabase($admin);
+                }
+                $notifMessage = 'Menunggu konfirmasi pembayaran...';
+                $notifType = 'info';
                 break;
 
-            case 'failed': // Pembayaran gagal
-                // Update status pembayaran menjadi failed
+            case 'deny':
+            case 'expire':
+            case 'cancel': // Pembayaran gagal
                 $payment->status = 'failed';
                 $payment->save();
-
-                // Update status booking menjadi failed (opsional)
                 $booking->status = 'failed';
                 $booking->save();
-                break;
 
+                // Kirim notifikasi ke admin/owner menggunakan Filament
+                $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+                foreach ($admins as $admin) {
+                    // Kirim notifikasi email
+                    $admin->notify(new PaymentStatusNotification('failed', $orderId, $payment->amount));
+                    $admin->notify(new BookingStatusNotification('failed', $orderId, $field->name, $booking->booking_date->format('d M Y'), $booking->start_time->format('H:i'), $booking->end_time->format('H:i')));
+
+                    // Kirim notifikasi ke panel Filament
+                    FilamentNotification::make()
+                        ->title('Pembayaran Gagal')
+                        ->body('Order ID: ' . $orderId . ' - Rp ' . number_format($payment->amount, 0, ',', '.'))
+                        ->danger()
+                        ->sendToDatabase($admin);
+
+                    FilamentNotification::make()
+                        ->title('Booking Gagal')
+                        ->body('Order ID: ' . $orderId . ' - ' . $field->name . ' pada ' . $booking->booking_date->format('d M Y') . ' jam ' . $booking->start_time->format('H:i'))
+                        ->danger()
+                        ->sendToDatabase($admin);
+                }
+                $notifMessage = 'Pembayaran gagal! Silakan coba lagi.';
+                $notifType = 'error';
+                break;
             default:
-                // Status transaksi tidak dikenali, simpan data seperti apa adanya
                 $payment->status = 'unknown';
                 $payment->save();
+                $notifMessage = 'Status pembayaran tidak dikenali.';
+                $notifType = 'warning';
                 break;
         }
 
-        // Mengirimkan response OK ke Midtrans
-        return response()->json('OK'); // Response 'OK' untuk Midtrans
+        // Jika request dari browser (bukan callback Midtrans), redirect ke halaman utama dengan flash
+        if ($request->expectsJson()) {
+            return response()->json('OK');
+        } else {
+            return redirect('/')->with(['success' => $notifMessage, 'notif_type' => $notifType]);
+        }
     }
 
     /**

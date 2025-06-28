@@ -73,21 +73,29 @@
         <button id="pay-button">Bayar Sekarang</button>
     </div>
 
+    <script src="{{ asset('assets/js/custom.js') }}"></script>
     <script type="text/javascript">
         document.getElementById('pay-button').onclick = function () {
             snap.pay("{{ $snapToken }}", {
                 onSuccess: function(result){
-                    alert("Pembayaran berhasil!");
-                    window.location.href = "/";  // Redirect to home or success page
+                    window.location.href = "/?membership_order_id=" + result.order_id;
                 },
                 onPending: function(result){
-                    alert("Menunggu konfirmasi pembayaran...");
+                    showNotification('Menunggu konfirmasi pembayaran...', 'info');
                 },
                 onError: function(result){
-                    alert("Pembayaran gagal!");
+                    showNotification('Pembayaran gagal! Silakan coba lagi.', 'error');
                 }
             });
         };
+        document.addEventListener('DOMContentLoaded', function() {
+            const notif = localStorage.getItem('notification');
+            if (notif) {
+                const {message, type} = JSON.parse(notif);
+                showNotification(message, type);
+                localStorage.removeItem('notification');
+            }
+        });
     </script>
 </body>
 </html>

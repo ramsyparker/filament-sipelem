@@ -52,9 +52,10 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 'admin.only',
             ])
-            ->Widgets([
+            ->widgets([
                 StatsOverview::class,
                 LatestBookings::class,
-            ]);
+            ])
+            ->databaseNotifications();
     }
 }

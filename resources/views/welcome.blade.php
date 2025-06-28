@@ -456,6 +456,13 @@
     <!-- Main JS File -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
     <script src="{{ asset('assets/js/custom.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                showNotification(@json(session('success')), '{{ session('notif_type', 'success') }}');
+            @endif
+        });
+    </script>
 
     <!-- filepath: d:\sipelem-filament\resources\views\welcome.blade.php -->
     <!-- Login Modal -->
@@ -681,6 +688,13 @@
             document.getElementById('membershipForm').classList.add('d-none');
             document.getElementById('membershipModalLabel').innerHTML = 'Pilih Paket Membership<span>.</span>';
         }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(isset($notif))
+                showNotification(@json($notif), 'success');
+            @endif
+        });
     </script>
 </body>
 

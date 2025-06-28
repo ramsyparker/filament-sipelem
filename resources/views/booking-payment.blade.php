@@ -108,21 +108,32 @@
         </div>
     </div>
 
+    <script src="{{ asset('assets/js/custom.js') }}"></script>
     <script type="text/javascript">
         document.getElementById('pay-button').onclick = function () {
             snap.pay("{{ $snapToken }}", {
                 onSuccess: function(result) {
-                    alert("Pembayaran berhasil!");
-                    window.location.href = "/";  // Redirect ke halaman sukses
+                    // Redirect ke halaman utama dengan order_id
+                    window.location.href = "/?order_id=" + result.order_id;
                 },
                 onPending: function(result) {
-                    document.getElementById('payment-alert').classList.remove('d-none');
+                    showNotification('Menunggu konfirmasi pembayaran...', 'info');
                 },
                 onError: function(result) {
-                    document.getElementById('payment-error').classList.remove('d-none');
+                    showNotification('Pembayaran gagal! Silakan coba lagi.', 'error');
                 }
             });
         };
+
+        // Jika ada notifikasi di localStorage, tampilkan di halaman utama
+        document.addEventListener('DOMContentLoaded', function() {
+            const notif = localStorage.getItem('notification');
+            if (notif) {
+                const {message, type} = JSON.parse(notif);
+                showNotification(message, type);
+                localStorage.removeItem('notification');
+            }
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

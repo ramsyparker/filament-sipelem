@@ -49,7 +49,12 @@
     <div class="container py-5">
         <div class="card glass-effect shadow-lg border-0">
             <div class="card-body">
-                <h2 class="mb-4" style="color:#ffc107;"><i class="bi bi-clock-history me-2"></i>History Booking</h2>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0" style="color:#ffc107;"><i class="bi bi-clock-history me-2"></i>History Booking</h2>
+                    <a href="/" class="btn btn-warning fw-bold" style="color:#181818; border-radius:8px;">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Kembali
+                    </a>
+                </div>
                 @if($bookings->isEmpty())
                     <div class="alert alert-warning text-center">Belum ada riwayat booking.</div>
                 @else

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\LatestBookings;
 use Filament\Pages\Dashboard as BaseDashboard;
 use App\Filament\Widgets\StatsOverview;
 
@@ -11,6 +12,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             StatsOverview::class,
+            LatestBookings::class,
         ];
     }
 

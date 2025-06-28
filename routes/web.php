@@ -20,7 +20,7 @@ Route::post('/login', [AuthController::class, 'store'])->name('login.store');
 Route::get('/register', [AuthController::class, 'create'])->name('register');
 Route::post('/register', [AuthController::class, 'storeRegister'])->name('register.store');
 
-Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::post('admin/logout', CustomLogoutController::class)
     ->middleware('auth')
     ->name('filament.admin.auth.logout');
@@ -42,6 +42,16 @@ Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])
 
 Route::get('/email/verify/{id}/{hash}', function (Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
     $request->fulfill();
+    // Notifikasi ke admin/owner: email user berhasil dikonfirmasi
+    $user = $request->user();
+    $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+    foreach ($admins as $admin) {
+        \Filament\Notifications\Notification::make()
+            ->title("Email {$user->name} berhasil dikonfirmasi")
+            ->success()
+            ->body("Email user {$user->name} ({$user->email}) telah diverifikasi.")
+            ->sendToDatabase($admin);
+    }
     return redirect()->route('welcome')->with('success', 'Email berhasil diverifikasi! Sekarang Anda dapat login.');
 })->middleware(['auth', 'signed'])->name('verification.verify');
 

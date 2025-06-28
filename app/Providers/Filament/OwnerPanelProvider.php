@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\LatestBookings;
+use App\Filament\Widgets\NotificationBellWidget;
 use App\Filament\Widgets\StatsOverview;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -37,8 +38,8 @@ class OwnerPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                StatsOverview::class,
+                LatestBookings::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -54,9 +55,6 @@ class OwnerPanelProvider extends PanelProvider
             ->authMiddleware([
                 'admin.owner.only',
             ])
-            ->Widgets([
-                StatsOverview::class,
-                LatestBookings::class,
-            ]);
+            ->databaseNotifications();
     }
 }

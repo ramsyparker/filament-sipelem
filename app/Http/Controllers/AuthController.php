@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Filament\Notifications\Notification as FilamentNotification;
 
 class AuthController extends Controller
 {
@@ -85,6 +86,21 @@ class AuthController extends Controller
 
         // Kirim email verifikasi
         $user->sendEmailVerificationNotification();
+
+        // Notifikasi ke admin/owner: user berhasil daftar
+        $admins = User::whereIn('role', ['admin', 'owner'])->get();
+        foreach ($admins as $admin) {
+            FilamentNotification::make()
+                ->title("{$user->name} berhasil daftar akun")
+                ->info()
+                ->body("User {$user->name} telah mendaftar akun.")
+                ->sendToDatabase($admin);
+            FilamentNotification::make()
+                ->title("Menunggu konfirmasi email {$user->name}")
+                ->warning()
+                ->body("User {$user->name} harus melakukan verifikasi email.")
+                ->sendToDatabase($admin);
+        }
 
         return redirect('/')->with('success', 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi akun.');
     }
